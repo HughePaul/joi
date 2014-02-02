@@ -78,6 +78,79 @@ describe('Joi', function () {
             });
         });
 
+        describe('#withvalue', function () {
+
+            it('fails when withvalue set on root', function (done) {
+
+                var b = Joi.any();
+                var result = b.withvalue('test');
+
+                expect(result.validate('test')).to.exist;
+                done();
+            });
+
+            it('returns error when related type not found', function (done) {
+
+                Validate(Joi.any().withvalue('test'), [['test', false]])
+                done();
+            });
+
+            it('succeeds when withvalue does not match value', function (done) {
+
+                var b = Joi.object({
+                    first: Joi.any().withvalue('value','second'),
+                    second: Joi.any()
+                });
+                Validate(b, [[{first:'another'}, true]]);
+
+                done();
+            });
+
+            it('fails when withvalue checks against multiple peers and one is missing', function (done) {
+
+                var b = Joi.object({
+                    first: Joi.any().withvalue('value',['second','third']),
+                    second: Joi.any(),
+                    third: Joi.any()
+                });
+                Validate(b, [[{first:'value',second:true}, false]]);
+
+                done();
+            });
+
+            it('succeeds when withvalue checks against multiple peers', function (done) {
+
+                var b = Joi.object({
+                    first: Joi.any().withvalue('value',['second','third']),
+                    second: Joi.any(),
+                    third: Joi.any()
+                });
+                Validate(b, [[{first:'value',second:true,third:true}, true]]);
+
+                done();
+            });
+
+            it('should throw an error when a parameter is not a string', function (done) {
+
+                try {
+                    Joi.any().withvalue(undefined,{});
+                    var error = false;
+                } catch (e) {
+                    error = true;
+                }
+                expect(error).to.equal(true);
+
+                try {
+                    Joi.any().withvalue(undefined,123);
+                    error = false;
+                } catch (e) {
+                    error = true;
+                }
+                expect(error).to.equal(true);
+                done();
+            });
+        });
+
         describe('#without', function () {
 
             it('fails when without set on root', function (done) {

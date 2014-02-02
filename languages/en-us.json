@@ -7,6 +7,10 @@
             "parent": "cannot specify peer when key is not part of an object",
             "peer": "missing required peer {{value}}"
         },
+        "withvalue": {
+            "parent": "cannot specify peer when key is not part of an object",
+            "peer": "missing required peer {{value}}"
+        },
         "without": {
             "parent": "cannot specify peer when key is not part of an object",
             "peer": "conflict with forbidden peer {{value}}"
