@@ -23,6 +23,17 @@ describe('Joi', function () {
 
     describe('any', function () {
 
+        it('validates both valid() and with()', function (done) {
+
+            var b = Joi.object({
+                first: Joi.any().valid('value').with('second'),
+                second: Joi.any()
+            });
+            Validate(b, [[{ first: 'value' }, false]]);
+
+            done();
+        });
+
         describe('#strict', function () {
 
             it('validates without converting', function (done) {
@@ -300,6 +311,19 @@ describe('Joi', function () {
                 var err = Joi.validate({ test: 'b', test1: 'a' }, schema);
                 expect(err).to.not.exist;
                 done();
+            });
+        });
+
+        describe('#validateCallback', function () {
+
+            it('validates using callback interface', function (done) {
+
+                var schema = Joi.number();
+                schema.validateCallback(4, {}, function (err) {
+
+                    expect(err).to.not.exist;
+                    done();
+                });
             });
         });
 

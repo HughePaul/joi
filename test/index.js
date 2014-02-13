@@ -41,6 +41,27 @@ describe('Joi', function () {
         done();
     });
 
+    it('validates object with callback interface', function (done) {
+
+        var schema = {
+            a: Joi.number().min(0).max(3).without('none'),
+            b: Joi.string().valid('a', 'b', 'c'),
+            c: Joi.string().email().optional()
+        };
+
+        var obj = {
+            a: 1,
+            b: 'a',
+            c: 'joe@example.com'
+        };
+
+        Joi.validateCallback(obj, schema, null, function (err) {
+
+            expect(err).to.not.exist;
+            done();
+        });
+    });
+
     it('validates null', function (done) {
 
         var err = Joi.validate(null, Joi.string());
@@ -62,6 +83,25 @@ describe('Joi', function () {
             [{ txt: 'test', upc: '' }, false],
             [{ txt: 'test', upc: undefined }, false],
             [{ txt: 'test', upc: 'test' }, true]
+        ]);
+
+        done();
+    });
+
+    it('validated without', function (done) {
+
+        var schema = Joi.object({
+            txt: Joi.string().without('upc'),
+            upc: Joi.string()
+        });
+
+        Validate(schema, [
+            [{ upc: 'test' }, true],
+            [{ txt: 'test' }, true],
+            [{ txt: 'test', upc: null }, false],
+            [{ txt: 'test', upc: '' }, false],
+            [{ txt: 'test', upc: undefined }, true],
+            [{ txt: 'test', upc: 'test' }, false]
         ]);
 
         done();
@@ -162,7 +202,7 @@ describe('Joi', function () {
         expect(err.message).to.equal('missing alternative peers upc,code');
 
         Validate(schema, [
-            [{ upc: null }, false],
+            [{ upc: null }, true],
             [{ upc: 'test' }, true],
             [{ txt: null }, false],
             [{ txt: 'test' }, true],
@@ -677,6 +717,25 @@ describe('Joi', function () {
         done();
     });
 
+    it('fails to validate with incorrect property when asked to strip unkown keys without aborting early', function (done) {
+
+        var schema = {
+            a: Joi.number().min(0).max(3),
+            b: Joi.string().valid('a', 'b', 'c'),
+            c: Joi.string().email().optional()
+        };
+
+        var obj = {
+            a: 1,
+            b: 'f',
+            d: 'c'
+        };
+        var err = Joi.validate(obj, schema, { stripUnknown: true, abortEarly: false });
+
+        expect(err).to.exist;
+        done();
+    });
+
     it('should pass validation with extra keys when allowUnknown is set', function (done) {
 
         var schema = {
@@ -817,7 +876,7 @@ describe('Joi', function () {
 
         expect(errOne).to.exist
         expect(errFull).to.exist
-        expect(errFull._errors.length).to.be.greaterThan(errOne._errors.length);
+        expect(errFull.details.length).to.be.greaterThan(errOne.details.length);
         done();
     });
 
@@ -868,6 +927,30 @@ describe('Joi', function () {
 
         expect(err).to.exist;
         expect(err.message).to.equal('notEmpty');
+        done();
+    });
+
+    it('returns error type in validation error', function (done) {
+
+        var input = {
+            notNumber: '',
+            notString: true,
+            notBoolean: 9
+        };
+
+        var schema = {
+            notNumber: Joi.number().required(),
+            notString: Joi.string().required(),
+            notBoolean: Joi.boolean().required()
+        }
+
+        var err = Joi.validate(input, schema, { abortEarly: false });
+
+        expect(err).to.exist;
+        expect(err.details).to.have.length(3);
+        expect(err.details[0].type).to.equal('number.base');
+        expect(err.details[1].type).to.equal('string.base');
+        expect(err.details[2].type).to.equal('boolean.base');
         done();
     });
 
